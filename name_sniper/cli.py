@@ -1,25 +1,16 @@
 #!/usr/bin/env python
 import sys
 import traceback
+import time
+from datetime import datetime
 
 import click
 from PyInquirer import style_from_dict, Token, prompt
+import json
 
+from logger import log
 from account import Account, InvalidAccountError
-
-from pyfiglet import figlet_format
-
-try:
-    import colorama
-
-    colorama.init()
-except ImportError:
-    colorama = None
-
-try:
-    from termcolor import colored
-except ImportError:
-    colored = None
+from timer import SnipeTimer
 
 style = style_from_dict(
     {
@@ -34,23 +25,16 @@ style = style_from_dict(
 )
 
 
-def log(string, color, font="slant", figlet=False):
-    if colored:
-        if not figlet:
-            print(colored(string, color))
-        else:
-            print(colored(figlet_format(string, font=font), color))
-    else:
-        print(string)
-
 def exit(message: str = None):
-    log(message or 'Exiting...', 'red')
+    log(message or "Exiting...", "red")
     sys.exit()
 
 
 @click.command()
-@click.option("-c", "--challenge", is_flag=True, default=False)
-def main(challenge: bool):
+@click.option(
+    "-a", "--attempts", type=int, default=10, help="Number of block attempts."
+)
+def main(attempts: int):
     log("Name Sniper", "yellow", figlet=True)
     questions = [
         {
@@ -61,18 +45,15 @@ def main(challenge: bool):
         {
             "type": "input",
             "name": "accounts",
-            "message": 'Enter path to a file with list of accounts in the format "email:password" on each line:',
-            "default": "./accounts.txt",
+            "message": "Enter path to a file with a JSON list of accounts",
+            "default": "../mc-accounts.json",
         },
     ]
 
     answers = prompt(questions)
     target = answers["target"]
-    accounts = []
-    with open(answers["accounts"]) as f:
-        for acc in f.readlines():
-            email, passw = acc.rstrip().split(":")
-            accounts.append(Account(email, passw))
+    accounts = json.load(open(answers["accounts"]))
+    accounts = [Account(acc["email"], acc["password"]) for acc in accounts]
 
     log("Verifying accounts", "yellow")
 
@@ -81,14 +62,15 @@ def main(challenge: bool):
         for account in bar:
             try:
                 account.authenticate()
+                if not account.check_security():
+                    auth_fail = True
+                    log(f'Account "{account.email}" is secured', "magenta")
+                    accounts.remove(account)
             except:
+                traceback.print_exc()
                 auth_fail = True
                 log(f'Failed to authenticate account "{account.email}"', "magenta")
-                accounts.remove(account)
-
-            if not account.check_security():
-                auth_fail = True
-                log(f'Account "{account.email}" is secured', "magenta")
+                traceback.print_exc()
                 accounts.remove(account)
 
     if auth_fail:
@@ -103,6 +85,31 @@ def main(challenge: bool):
             ]
         )["continue"]:
             exit()
+
+    try:
+        timer = SnipeTimer(target)
+        
+    except AttributeError:
+        exit(message="Getting drop time failed. Name may be unavailable.")
+
+    log("Waiting for name drop", "yellow")
+    timer.await_name(early=timer.ping.microseconds * attempts / 2)
+
+    account = accounts[0]
+    success = False
+    for _ in range(attempts):
+        success = account.block(target) or success
+
+    if account:
+        log(f"Success! Name {target} blocked on account {account.email}", "green")
+    else:
+        print(json.dumps(account))
+        log(
+            f"Failure! Name block failed on {target} with account {account.email}. 😢",
+            "red",
+        )
+
+    exit()
 
 
 if __name__ == "__main__":
