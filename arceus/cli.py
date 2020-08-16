@@ -3,14 +3,15 @@ import sys
 import traceback
 import time
 from datetime import datetime
+import ssl
+import json
 
 import click
 from PyInquirer import style_from_dict, Token, prompt
-import json
 
-from logger import log
-from account import Account, InvalidAccountError
-from timer import SnipeTimer
+from .account import Account, InvalidAccountError, RatelimitedError
+from .blocker import Blocker
+from .logger import log
 
 style = style_from_dict(
     {
@@ -32,10 +33,10 @@ def exit(message: str = None):
 
 @click.command()
 @click.option(
-    "-a", "--attempts", type=int, default=10, help="Number of block attempts."
+    "-a", "--attempts", type=int, default=100, help="Number of block attempts."
 )
 def main(attempts: int):
-    log("Name Sniper", "yellow", figlet=True)
+    log("Arceus v1", "yellow", figlet=True)
     questions = [
         {
             "type": "input",
@@ -55,14 +56,14 @@ def main(attempts: int):
     accounts = json.load(open(answers["accounts"]))
     accounts = [Account(acc["email"], acc["password"]) for acc in accounts]
 
-    log("Verifying accounts", "yellow")
+    log("Verifying accounts...", "yellow")
 
     auth_fail = False
     with click.progressbar(accounts) as bar:
         for account in bar:
             try:
                 account.authenticate()
-                if not account.check_security():
+                if account.get_challenges():
                     auth_fail = True
                     log(f'Account "{account.email}" is secured', "magenta")
                     accounts.remove(account)
@@ -85,29 +86,24 @@ def main(attempts: int):
             ]
         )["continue"]:
             exit()
+    for account in accounts:
+        try:
+            blocker = Blocker(target, account)
+            log(f'Initiating block on account "{account.email}"', "yellow")
+            blocker.block(attempts=attempts, verbose=True)
 
-    try:
-        timer = SnipeTimer(target)
-        
-    except AttributeError:
-        exit(message="Getting drop time failed. Name may be unavailable.")
+        except AttributeError:
+            traceback.print_exc()
+            #exit(message="Getting drop time failed. Name may be unavailable.")
 
-    log("Waiting for name drop", "yellow")
-    timer.await_name(early=timer.ping.microseconds * attempts / 2)
-
-    account = accounts[0]
-    success = False
-    for _ in range(attempts):
-        success = account.block(target) or success
-
-    if account:
-        log(f"Success! Name {target} blocked on account {account.email}", "green")
-    else:
-        print(json.dumps(account))
-        log(
-            f"Failure! Name block failed on {target} with account {account.email}. 😢",
-            "red",
-        )
+    for account in accounts:
+        if account.check_blocked(target):
+            log(f'Success! Account "{account.email}" blocked target name.', "green")
+        else:
+            log(
+                f'Failure! Account "{account.email}" failed to block target name. 😢',
+                "red",
+            )
 
     exit()
 

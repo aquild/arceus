@@ -14,6 +14,9 @@ colorama = "*"
 termcolor = "*"
 requests = "*"
 bs4 = "*"
+pythonping = "*"
+pause = "*"
+requests-random-user-agent = "*"
 
 [requires]
 python_version = "3.8"

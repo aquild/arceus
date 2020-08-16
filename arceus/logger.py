@@ -1,5 +1,4 @@
 from pyfiglet import figlet_format
-
 try:
     import colorama
 

@@ -5,6 +5,9 @@ import requests_random_user_agent
 class InvalidAccountError(Exception):
     pass
 
+class RatelimitedError(Exception):
+    pass
+
 
 class Account:
     def __init__(self, email: str, password: str):
@@ -24,19 +27,21 @@ class Account:
 
         if res.status_code == 403:
             raise InvalidAccountError
+        elif res.status_code == 419:
+            raise RatelimitedError
         else:
             self.token = res.json()["accessToken"]
 
-    def check_security(self):
+    def get_challenges(self):
         res = requests.get(
             "https://api.mojang.com/user/security/challenges",
             headers={"Authorization": f"Bearer {self.token}"},
         )
-        return not res.json()
+        return res.json()
 
-    def block(self, target: str):
-        res = requests.post(
+    def check_blocked(self, target: str):
+        res = requests.get(
             f"https://api.mojang.com/user/profile/agent/minecraft/name/{target}",
-            headers={"Authorization": self.token},
+            headers={"Authorization": f"Bearer {self.token}"},
         )
-        return res.status_code == 204
+        return res.status_code == 404
