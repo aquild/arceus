@@ -30,14 +30,17 @@ def exit(message: str = None):
     log(message or "Exiting...", "red")
     sys.exit()
 
+@click.group()
+def cli():
+    pass
 
-@click.command()
+@cli.command()
 @click.option("-t", "--target", type=str, help="Name to block")
 @click.option("-c", "--config", "config_file", type=str, help="Path to config file")
 @click.option(
     "-a", "--attempts", type=int, default=100, help="Number of block attempts"
 )
-def main(target: str, config_file: str, attempts: int):
+def block(target: str, config_file: str, attempts: int):
     log("Arceus v1", "yellow", figlet=True)
 
     if not target:
@@ -118,6 +121,6 @@ def main(target: str, config_file: str, attempts: int):
 
 if __name__ == "__main__":
     try:
-        main()
+        cli()
     except Exception as e:
         exit(message=traceback.format_exc())

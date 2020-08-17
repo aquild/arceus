@@ -8,7 +8,7 @@ except IOError:
 
 setup(
     name="arceus",
-    version="0.1.0",
+    version="1.0.0",
     description="Minecraft name sniper.",
     author="Aquild",
     packages=find_packages(),
@@ -29,5 +29,5 @@ setup(
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.8",
     ],
-    entry_points={"console_scripts": ["arceus=arceus.cli:main"]},
+    entry_points={"console_scripts": ["arceus=arceus.cli:cli"]},
 )
