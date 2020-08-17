@@ -32,29 +32,37 @@ def exit(message: str = None):
 
 
 @click.command()
+@click.option("-t", "--target", type=str, help="Name to block")
+@click.option("-c", "--config", "config_file", type=str, help="Path to config file")
 @click.option(
-    "-a", "--attempts", type=int, default=100, help="Number of block attempts."
+    "-a", "--attempts", type=int, default=100, help="Number of block attempts"
 )
-def main(attempts: int):
+def main(target: str, config_file: str, attempts: int):
     log("Arceus v1", "yellow", figlet=True)
-    questions = [
-        {
-            "type": "input",
-            "name": "target",
-            "message": "Enter the username you want to block:",
-        },
-        {
-            "type": "input",
-            "name": "accounts",
-            "message": "Enter path to a file with a JSON list of accounts",
-            "default": "../mc-accounts.json",
-        },
-    ]
 
-    answers = prompt(questions)
-    target = answers["target"]
-    accounts = json.load(open(answers["accounts"]))
-    accounts = [Account(acc["email"], acc["password"]) for acc in accounts]
+    if not target:
+        target = prompt(
+            {
+                "type": "input",
+                "name": "target",
+                "message": "Enter the username you want to block:",
+            }
+        )["target"]
+
+    if not config_file:
+        config_file = prompt(
+            [
+                {
+                    "type": "input",
+                    "name": "config_file",
+                    "message": "Enter path to config file",
+                    "default": "config.json",
+                }
+            ]
+        )["config_file"]
+
+    config = json.load(open(config_file))
+    accounts = [Account(acc["email"], acc["password"]) for acc in config["accounts"]]
 
     log("Verifying accounts...", "yellow")
 
