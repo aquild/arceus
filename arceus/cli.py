@@ -94,7 +94,7 @@ def main(attempts: int):
 
         except AttributeError:
             traceback.print_exc()
-            #exit(message="Getting drop time failed. Name may be unavailable.")
+            # exit(message="Getting drop time failed. Name may be unavailable.")
 
     for account in accounts:
         if account.check_blocked(target):

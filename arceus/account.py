@@ -5,6 +5,7 @@ import requests_random_user_agent
 class InvalidAccountError(Exception):
     pass
 
+
 class RatelimitedError(Exception):
     pass
 
