@@ -40,10 +40,11 @@ def cli():
 @cli.command()
 @click.option("-t", "--target", type=str, help="Name to block")
 @click.option("-c", "--config", "config_file", type=str, help="Path to config file")
+@click.option("-e", "--early", type=int, default=0, help="How early to send requests")
 @click.option(
     "-a", "--attempts", type=int, default=100, help="Number of block attempts"
 )
-def block(target: str, config_file: str, attempts: int):
+def block(target: str, config_file: str, early: int, attempts: int):
     log("Arceus v1", "yellow", figlet=True)
 
     if not target:
@@ -104,7 +105,9 @@ def block(target: str, config_file: str, attempts: int):
         try:
             blocker = Blocker(target, account)
             log(f'Initiating block on account "{account.email}"', "yellow")
-            blocker.block(attempts=attempts, verbose=True)
+            blocker.block(
+                attempts=attempts, early=timedelta(milliseconds=early), verbose=True
+            )
 
         except AttributeError:
             traceback.print_exc()
@@ -130,13 +133,16 @@ def block(target: str, config_file: str, attempts: int):
     default="https://snipe-benchmark.herokuapp.com",
     help="Benchmark API to use",
 )
+@click.option("-e", "--early", type=int, default=0, help="How early to send requests")
 @click.option("-a", "--attempts", type=int, default=100, help="Number of attempts")
 @click.option("-d", "--delay", type=float, default=10)
-def benchmark(host: str, attempts: int, delay: int):
+def benchmark(host: str, early: int, attempts: int, delay: int):
     log("Arceus v1", "yellow", figlet=True)
 
     benchmarker = Benchmarker(datetime.now() + timedelta(seconds=delay), api_base=host)
-    result = benchmarker.benchmark(attempts=attempts, verbose=True)
+    result = benchmarker.benchmark(
+        attempts=attempts, early=timedelta(milliseconds=early), verbose=True
+    )
     log(f"Results", "green")
     log(f"Delay: {result['delay']}ms", "magenta")
     log(

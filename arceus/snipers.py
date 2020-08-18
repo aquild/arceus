@@ -81,6 +81,7 @@ class Sniper(ABC):
     def block(
         self,
         attempts: int = 100,
+        early: timedelta = timedelta(milliseconds=0),
         keepalive: timedelta = timedelta(seconds=1),
         verbose: bool = False,
     ):
@@ -101,7 +102,7 @@ class Sniper(ABC):
         loop = asyncio.get_event_loop()
         loop.run_until_complete(sockets.connect())
 
-        pause.until(self.drop_time - (self.rtt / 2))
+        pause.until(self.drop_time - (self.rtt / 2) - early)
         if verbose:
             log(f"Spamming...", "yellow")
         #loop.run_until_complete(sockets.spam())
