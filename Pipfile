@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 pylint = "*"
+black = "*"
 
 [packages]
 click = "*"
@@ -14,9 +15,12 @@ colorama = "*"
 termcolor = "*"
 requests = "*"
 bs4 = "*"
-pythonping = "*"
 pause = "*"
 requests-random-user-agent = "*"
+tcp-latency = "*"
 
 [requires]
 python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true

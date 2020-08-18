@@ -2,7 +2,7 @@
 import sys
 import traceback
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import ssl
 import json
 
@@ -10,7 +10,8 @@ import click
 from PyInquirer import style_from_dict, Token, prompt
 
 from .account import Account, InvalidAccountError, RatelimitedError
-from .blocker import Blocker
+from .snipers import Blocker
+from .benchmark import Benchmarker
 from .logger import log
 
 style = style_from_dict(
@@ -30,9 +31,11 @@ def exit(message: str = None):
     log(message or "Exiting...", "red")
     sys.exit()
 
+
 @click.group()
 def cli():
     pass
+
 
 @cli.command()
 @click.option("-t", "--target", type=str, help="Name to block")
@@ -105,7 +108,7 @@ def block(target: str, config_file: str, attempts: int):
 
         except AttributeError:
             traceback.print_exc()
-            # exit(message="Getting drop time failed. Name may be unavailable.")
+            exit(message="Getting drop time failed. Name may be unavailable.")
 
     for account in accounts:
         if account.check_blocked(target):
@@ -115,6 +118,26 @@ def block(target: str, config_file: str, attempts: int):
                 f'Failure! Account "{account.email}" failed to block target name. 😢',
                 "red",
             )
+
+    exit()
+
+
+@cli.command()
+@click.option(
+    "-h",
+    "--host",
+    type=str,
+    default="https://snipe-benchmark.herokuapp.com",
+    help="Benchmark API to use",
+)
+@click.option("-a", "--attempts", type=int, default=100, help="Number of attempts")
+@click.option("-d", "--delay", type=float, default=10)
+def benchmark(host: str, attempts: int, delay: int):
+    log("Arceus v1", "yellow", figlet=True)
+
+    benchmarker = Benchmarker(datetime.now() + timedelta(seconds=delay), api_base=host)
+    delay = benchmarker.benchmark(attempts=attempts, verbose=True)
+    log(f"Results: {delay}ms delay", "green")
 
     exit()
 

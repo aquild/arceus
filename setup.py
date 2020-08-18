@@ -15,7 +15,7 @@ setup(
     install_requires=[
         "requests",
         "requests-random-user-agent",
-        "pythonping",
+        "tcp-latency",
         "bs4",
         "pause",
         "click",
