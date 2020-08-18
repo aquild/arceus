@@ -136,8 +136,13 @@ def benchmark(host: str, attempts: int, delay: int):
     log("Arceus v1", "yellow", figlet=True)
 
     benchmarker = Benchmarker(datetime.now() + timedelta(seconds=delay), api_base=host)
-    delay = benchmarker.benchmark(attempts=attempts, verbose=True)
-    log(f"Results: {delay}ms delay", "green")
+    result = benchmarker.benchmark(attempts=attempts, verbose=True)
+    log(f"Results", "green")
+    log(f"Delay: {result['delay']}ms", "magenta")
+    log(
+        f"Requests: {result['early'] + result['late']} Total | {result['early']} Early | {result['late']} Late",
+        "magenta",
+    )
 
     exit()
 

@@ -41,7 +41,7 @@ class Benchmarker:
         attempts: int = 100,
         keepalive: timedelta = timedelta(seconds=1),
         verbose: bool = False,
-    ) -> int:
+    ) -> dict:
         self.get_rtt()
 
         if verbose:
@@ -69,5 +69,4 @@ class Benchmarker:
             log(f"Spamming...", "yellow")
         loop.run_until_complete(sockets.spam())
 
-        with requests.get(f"{self.api_base}/arceus-v{__version__}") as r:
-            return r.json()["delay"]
+        return requests.get(f"{self.api_base}/arceus-v{__version__}").json()["result"]
