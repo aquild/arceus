@@ -1,9 +1,12 @@
 #!/usr/bin/env python
+import os
 import sys
+import concurrent.futures
 import traceback
 import time
 from datetime import datetime, timedelta
 import ssl
+from itertools import cycle
 import json
 
 import click
@@ -40,11 +43,11 @@ def cli():
 @cli.command()
 @click.option("-t", "--target", type=str, help="Name to block")
 @click.option("-c", "--config", "config_file", type=str, help="Path to config file")
-@click.option("-e", "--early", type=int, default=0, help="How early to send requests")
 @click.option(
-    "-a", "--attempts", type=int, default=100, help="Number of block attempts"
+    "-w", "--workers", type=int, default=os.cpu_count(), help="Number of workers"
 )
-def block(target: str, config_file: str, early: int, attempts: int):
+@click.option("-a", "--attempts", type=int, default=20, help="Number of block attempts")
+def block(target: str, config_file: str, workers: int, attempts: int):
     log("Arceus v1", "yellow", figlet=True)
 
     if not target:
@@ -69,27 +72,24 @@ def block(target: str, config_file: str, early: int, attempts: int):
         )["config_file"]
 
     config = json.load(open(config_file))
-    accounts = [Account(acc["email"], acc["password"]) for acc in config["accounts"]]
+    account = Account(config["account"]["email"], config["account"]["password"])
+    if "offset" in config:
+        offset = timedelta(milliseconds=config["offset"])
+    else:
+        offset = timedelta(milliseconds=0)
 
     log("Verifying accounts...", "yellow")
 
-    auth_fail = False
-    with click.progressbar(accounts) as bar:
-        for account in bar:
-            try:
-                account.authenticate()
-                if account.get_challenges():
-                    auth_fail = True
-                    log(f'Account "{account.email}" is secured', "magenta")
-                    accounts.remove(account)
-            except:
-                traceback.print_exc()
-                auth_fail = True
-                log(f'Failed to authenticate account "{account.email}"', "magenta")
-                traceback.print_exc()
-                accounts.remove(account)
-
-    if auth_fail:
+    try:
+        account.authenticate()
+        if account.get_challenges():
+            auth_fail = True
+            log(f'Account "{account.email}" is secured', "magenta")
+            accounts.remove(account)
+    except:
+        log(f'Failed to authenticate account "{account.email}"', "magenta")
+        traceback.print_exc()
+        accounts.remove(account)
         if not prompt(
             [
                 {
@@ -101,26 +101,21 @@ def block(target: str, config_file: str, early: int, attempts: int):
             ]
         )["continue"]:
             exit()
-    for account in accounts:
-        try:
-            blocker = Blocker(target, account)
-            log(f'Initiating block on account "{account.email}"', "yellow")
-            blocker.block(
-                attempts=attempts, early=timedelta(milliseconds=early), verbose=True
-            )
 
-        except AttributeError:
-            traceback.print_exc()
-            exit(message="Getting drop time failed. Name may be unavailable.")
+    try:
+        blocker = Blocker(target, account, offset=offset)
+        log(f"Setting up blocker...", "yellow")
+        blocker.setup(workers, attempts=attempts, verbose=True)
+    except AttributeError:
+        traceback.print_exc()
+        exit(message="Getting drop time failed. Name may be unavailable.")
 
-    for account in accounts:
-        if account.check_blocked(target):
-            log(f'Success! Account "{account.email}" blocked target name.', "green")
-        else:
-            log(
-                f'Failure! Account "{account.email}" failed to block target name. 😢',
-                "red",
-            )
+    if account.check_blocked(target):
+        log(f'Success! Account "{account.email}" blocked target name.', "green")
+    else:
+        log(
+            f'Failure! Account "{account.email}" failed to block target name. 😢', "red",
+        )
 
     exit()
 
@@ -133,17 +128,24 @@ def block(target: str, config_file: str, early: int, attempts: int):
     default="https://snipe-benchmark.herokuapp.com",
     help="Benchmark API to use",
 )
-@click.option("-e", "--early", type=int, default=0, help="How early to send requests")
-@click.option("-a", "--attempts", type=int, default=100, help="Number of attempts")
+@click.option(
+    "-w", "--workers", type=int, default=os.cpu_count(), help="Number of workers"
+)
+@click.option("-o", "--offset", type=int, default=0, help="Request timing offset")
+@click.option("-a", "--attempts", type=int, default=20, help="Number of attempts")
 @click.option("-d", "--delay", type=float, default=15)
-def benchmark(host: str, early: int, attempts: int, delay: int):
+def benchmark(host: str, workers: int, offset: int, attempts: int, delay: int):
     log("Arceus v1", "yellow", figlet=True)
 
-    benchmarker = Benchmarker(datetime.now() + timedelta(seconds=delay), api_base=host)
-    result = benchmarker.benchmark(
-        attempts=attempts, early=timedelta(milliseconds=early), verbose=True
+    benchmarker = Benchmarker(
+        datetime.now() + timedelta(seconds=delay),
+        offset=timedelta(milliseconds=offset),
+        api_base=host,
     )
-    log(f"Results", "green")
+    benchmarker.setup(workers, attempts=attempts, verbose=True)
+
+    result = benchmarker.result
+    log(f"Results:", "green")
     log(f"Delay: {result['delay']}ms", "magenta")
     log(
         f"Requests: {result['early'] + result['late']} Total | {result['early']} Early | {result['late']} Late",

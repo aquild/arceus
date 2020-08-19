@@ -1,6 +1,8 @@
 import asyncio
+import multiprocessing
 import ssl
 from tcp_latency import measure_latency
+from urllib.parse import urlparse
 import statistics
 import traceback
 import pause
@@ -57,9 +59,21 @@ def datetime_from_utc_to_local(utc_datetime):
 
 
 class Sniper(ABC):
-    def __init__(self, target: str, account: Account):
+    def __init__(
+        self,
+        target: str,
+        account: Account,
+        offset: timedelta = timedelta(seconds=0),
+        api_base: str = "https://api.mojang.com",
+    ):
         self.target = target
         self.account = account
+        self.offset = offset
+        self.api_base = api_base
+
+        parsed = urlparse(self.api_base)
+        self.api_host = parsed.hostname
+        self.api_port = parsed.port or 443
 
     @property
     @abstractmethod
@@ -75,26 +89,40 @@ class Sniper(ABC):
         )
 
     def get_rtt(self, samples: int = 5):
-        latency = measure_latency(host="api.mojang.com", port=443, runs=samples)
+        latency = measure_latency(host=self.api_host, port=self.api_port, runs=samples)
         self.rtt = timedelta(milliseconds=statistics.mean(latency))
 
-    def block(
+    def setup(
         self,
-        attempts: int = 100,
-        early: timedelta = timedelta(milliseconds=0),
+        workers,
+        attempts: int = 1,
         keepalive: timedelta = timedelta(seconds=1),
         verbose: bool = False,
     ):
         self.get_rtt()
         self.get_drop()
-        log("Waiting for name drop...", "yellow")
+        log(f"Waiting for name drop on account {self.account.email}...", "yellow")
 
         pause.until(self.drop_time - timedelta(seconds=10))
         if verbose:
             log("Authenticating...", "yellow")
         self.account.authenticate()
         self.account.get_challenges()  # Necessary to facilitate auth ¯\_(ツ)_/¯
-        sockets = SocketManager("api.mojang.com", 443, self.payload, attempts=attempts,)
+
+        with multiprocessing.Pool() as pool:
+            log(f"Connecting and spamming...", "yellow")
+            pool.map(self.snipe, [attempts] * workers)
+
+    def snipe(
+        self,
+        attempts,
+        keepalive: timedelta = timedelta(seconds=1),
+        ssl: bool = True,
+        verbose: bool = False,
+    ):
+        sockets = SocketManager(
+            self.api_host, self.api_port, self.payload, attempts=attempts, ssl=ssl
+        )
 
         pause.until(self.drop_time - keepalive)
         if verbose:
@@ -102,7 +130,7 @@ class Sniper(ABC):
         loop = asyncio.get_event_loop()
         loop.run_until_complete(sockets.connect())
 
-        pause.until(self.drop_time - self.rtt - early)
+        pause.until(self.drop_time - (self.rtt + self.offset))
         if verbose:
             log(f"Spamming...", "yellow")
         loop.run_until_complete(sockets.spam())
