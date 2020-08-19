@@ -135,7 +135,7 @@ def block(target: str, config_file: str, early: int, attempts: int):
 )
 @click.option("-e", "--early", type=int, default=0, help="How early to send requests")
 @click.option("-a", "--attempts", type=int, default=100, help="Number of attempts")
-@click.option("-d", "--delay", type=float, default=10)
+@click.option("-d", "--delay", type=float, default=15)
 def benchmark(host: str, early: int, attempts: int, delay: int):
     log("Arceus v1", "yellow", figlet=True)
 

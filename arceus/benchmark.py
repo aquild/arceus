@@ -65,7 +65,7 @@ class Benchmarker:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(sockets.connect())
 
-        pause.until(self.time - (self.rtt / 2) - early)
+        pause.until(self.time - self.rtt - early)
         if verbose:
             log(f"Spamming...", "yellow")
         loop.run_until_complete(sockets.spam())
