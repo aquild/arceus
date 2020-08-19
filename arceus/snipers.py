@@ -130,7 +130,7 @@ class Sniper(ABC):
         loop = asyncio.get_event_loop()
         loop.run_until_complete(sockets.connect())
 
-        pause.until(self.drop_time - (self.rtt + self.offset))
+        pause.until(self.drop_time + (self.offset - self.rtt))
         if verbose:
             log(f"Spamming...", "yellow")
         loop.run_until_complete(sockets.spam())
