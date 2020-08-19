@@ -1,21 +1,27 @@
 import asyncio
+import multiprocessing
 import requests
 from tcp_latency import measure_latency
 import statistics
+import functools
 from urllib.parse import urlparse
 import pause
 from datetime import datetime, timedelta
 
 from . import __version__
-from .snipers import SocketManager
+from .snipers import Sniper
 from .logger import log
 
 
-class Benchmarker:
+class Benchmarker(Sniper):
     def __init__(
-        self, time: datetime, api_base: str = "https://snipe-benchmark.herokuapp.com"
+        self,
+        time: datetime,
+        offset: timedelta = timedelta(seconds=0),
+        api_base: str = "https://snipe-benchmark.herokuapp.com",
     ):
-        self.time = time
+        self.drop_time = time
+        self.offset = offset
         self.api_base = api_base
 
         parsed = urlparse(self.api_base)
@@ -32,42 +38,29 @@ class Benchmarker:
             f"User-Agent: Arceus v1\r\n\r\n"
         ).encode()
 
-    def get_rtt(self, samples: int = 5):
-        latency = measure_latency(host=self.api_host, port=self.api_port, runs=samples)
-        self.rtt = timedelta(milliseconds=statistics.mean(latency))
-
-    def benchmark(
+    def setup(
         self,
-        attempts: int = 100,
-        early: timedelta = timedelta(milliseconds=0),
+        workers,
+        attempts: int = 1,
         keepalive: timedelta = timedelta(seconds=1),
         verbose: bool = False,
-    ) -> dict:
-        self.get_rtt()
-
+    ):
         if verbose:
             log("Setting up benchmark...", "yellow")
+        self.get_rtt()
         requests.post(
             f"{self.api_base}/arceus-v{__version__}",
-            json={"time": self.time.timestamp() * 1000},
-        )
-        sockets = SocketManager(
-            self.api_host,
-            self.api_port or 443,
-            self.payload,
-            attempts=attempts,
-            ssl=self.api_port == 443,
+            json={"time": self.drop_time.timestamp() * 1000},
         )
 
-        pause.until(self.time - keepalive)
-        if verbose:
-            log(f"Connecting...", "yellow")
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(sockets.connect())
+        with multiprocessing.Pool() as pool:
+            log(f"Connecting and spamming...", "yellow")
 
-        pause.until(self.time - self.rtt - early)
-        if verbose:
-            log(f"Spamming...", "yellow")
-        loop.run_until_complete(sockets.spam())
+            pool.map(
+                functools.partial(self.snipe, ssl=self.api_port == 443),
+                [attempts] * workers,
+            )
 
+    @property
+    def result(self):
         return requests.get(f"{self.api_base}/arceus-v{__version__}").json()["result"]
