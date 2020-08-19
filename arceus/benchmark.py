@@ -1,8 +1,6 @@
 import asyncio
 import multiprocessing
 import requests
-from tcp_latency import measure_latency
-import statistics
 import functools
 from urllib.parse import urlparse
 import pause

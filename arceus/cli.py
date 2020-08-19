@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 import os
 import sys
-import concurrent.futures
 import traceback
-import time
 from datetime import datetime, timedelta
-import ssl
-from itertools import cycle
 import json
 
 import click
@@ -44,7 +40,7 @@ def cli():
 @click.option("-t", "--target", type=str, help="Name to block")
 @click.option("-c", "--config", "config_file", type=str, help="Path to config file")
 @click.option(
-    "-w", "--workers", type=int, default=os.cpu_count(), help="Number of workers"
+    "-w", "--workers", type=int, default=min(4, os.cpu_count()), help="Number of workers"
 )
 @click.option("-a", "--attempts", type=int, default=20, help="Number of block attempts")
 def block(target: str, config_file: str, workers: int, attempts: int):
@@ -129,7 +125,7 @@ def block(target: str, config_file: str, workers: int, attempts: int):
     help="Benchmark API to use",
 )
 @click.option(
-    "-w", "--workers", type=int, default=os.cpu_count(), help="Number of workers"
+    "-w", "--workers", type=int, default=min(4, os.cpu_count()), help="Number of workers"
 )
 @click.option("-o", "--offset", type=int, default=0, help="Request timing offset")
 @click.option("-a", "--attempts", type=int, default=20, help="Number of attempts")
