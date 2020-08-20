@@ -119,9 +119,9 @@ def block(target: str, config_file: str, workers: int, attempts: int):
 @click.option("-t", "--target", type=str, help="Name to block")
 @click.option("-c", "--config", "config_file", type=str, help="Path to config file")
 @click.option(
-    "-w", "--workers", type=int, default=min(4, os.cpu_count()), help="Number of workers"
+    "-w", "--workers", type=int, default=1, help="Number of workers, EXPERIMENTAL"
 )
-@click.option("-a", "--attempts", type=int, default=20, help="Number of block attempts")
+@click.option("-a", "--attempts", type=int, default=100, help="Number of block attempts")
 def snipe(target: str, config_file: str, workers: int, attempts: int):
     log("Arceus v1", "yellow", figlet=True)
 
@@ -204,10 +204,10 @@ def snipe(target: str, config_file: str, workers: int, attempts: int):
     help="Benchmark API to use",
 )
 @click.option(
-    "-w", "--workers", type=int, default=min(4, os.cpu_count()), help="Number of workers"
+    "-w", "--workers", type=int, default=1, help="Number of workers, EXPERIMENTAL"
 )
 @click.option("-o", "--offset", type=int, default=0, help="Request timing offset")
-@click.option("-a", "--attempts", type=int, default=20, help="Number of attempts")
+@click.option("-a", "--attempts", type=int, default=100, help="Number of attempts")
 @click.option("-d", "--delay", type=float, default=15)
 def benchmark(host: str, workers: int, offset: int, attempts: int, delay: int):
     log("Arceus v1", "yellow", figlet=True)
