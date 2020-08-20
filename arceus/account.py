@@ -31,7 +31,13 @@ class Account:
         elif res.status_code == 419:
             raise RatelimitedError
         else:
-            self.token = res.json()["accessToken"]
+            json = res.json()
+            self.token = json["accessToken"]
+            self.uuid = None
+            try:
+                self.uuid = json["selectedProfile"]["id"]
+            except KeyError:
+                pass
 
     def get_challenges(self):
         res = requests.get(

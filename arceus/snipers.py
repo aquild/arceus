@@ -148,3 +148,16 @@ class Blocker(Sniper):
             f"Authorization: Bearer {self.account.token}\r\n"
             f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36\r\n\r\n"
         ).encode()
+
+class Changer(Sniper):
+    @property
+    def payload(self):
+        return (
+            f"PUT //user/profile/{self.account.uuid}/name HTTP/1.1\r\n"
+            f"Host: api.mojang.com\r\n" 
+            f"Connection: keep-alive\r\n"
+            f"Content-Length: 0\r\n"
+            f"Accept: */*\r\n"
+            f"Authorization: Bearer {self.account.token}\r\n"
+            f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36\r\n\r\n"
+        ).encode()

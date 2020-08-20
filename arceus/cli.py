@@ -9,7 +9,7 @@ import click
 from PyInquirer import style_from_dict, Token, prompt
 
 from .account import Account, InvalidAccountError, RatelimitedError
-from .snipers import Blocker
+from .snipers import Blocker, Changer
 from .benchmark import Benchmarker
 from .logger import log
 
@@ -101,6 +101,85 @@ def block(target: str, config_file: str, workers: int, attempts: int):
     try:
         blocker = Blocker(target, account, offset=offset)
         log(f"Setting up blocker...", "yellow")
+        blocker.setup(workers, attempts=attempts, verbose=True)
+    except AttributeError:
+        traceback.print_exc()
+        exit(message="Getting drop time failed. Name may be unavailable.")
+
+    if account.check_blocked(target):
+        log(f'Success! Account "{account.email}" blocked target name.', "green")
+    else:
+        log(
+            f'Failure! Account "{account.email}" failed to block target name. 😢', "red",
+        )
+
+    exit()
+
+@cli.command()
+@click.option("-t", "--target", type=str, help="Name to block")
+@click.option("-c", "--config", "config_file", type=str, help="Path to config file")
+@click.option(
+    "-w", "--workers", type=int, default=min(4, os.cpu_count()), help="Number of workers"
+)
+@click.option("-a", "--attempts", type=int, default=20, help="Number of block attempts")
+def snipe(target: str, config_file: str, workers: int, attempts: int):
+    log("Arceus v1", "yellow", figlet=True)
+
+    if not target:
+        target = prompt(
+            {
+                "type": "input",
+                "name": "target",
+                "message": "Enter the username you want to snipe:",
+            }
+        )["target"]
+
+    if not config_file:
+        config_file = prompt(
+            [
+                {
+                    "type": "input",
+                    "name": "config_file",
+                    "message": "Enter path to config file",
+                    "default": "config.json",
+                }
+            ]
+        )["config_file"]
+
+    config = json.load(open(config_file))
+    account = Account(config["account"]["email"], config["account"]["password"])
+    if "offset" in config:
+        offset = timedelta(milliseconds=config["offset"])
+    else:
+        offset = timedelta(milliseconds=0)
+
+    log("Verifying accounts...", "yellow")
+
+    try:
+        account.authenticate()
+        if account.get_challenges():
+            auth_fail = True
+            log(f'Account "{account.email}" is secured', "magenta")
+            accounts.remove(account)
+    except:
+        log(f'Failed to authenticate account "{account.email}"', "magenta")
+        traceback.print_exc()
+        accounts.remove(account)
+        if not prompt(
+            [
+                {
+                    "type": "confirm",
+                    "message": "One or more accounts failed to authenticate. Continue?",
+                    "name": "continue",
+                    "default": False,
+                }
+            ]
+        )["continue"]:
+            exit()
+
+    try:
+        blocker = Changer(target, account, offset=offset)
+        log(f"Setting up sniper...", "yellow")
         blocker.setup(workers, attempts=attempts, verbose=True)
     except AttributeError:
         traceback.print_exc()
