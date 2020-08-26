@@ -52,10 +52,10 @@ class Benchmarker(Sniper):
         )
 
         with multiprocessing.Pool() as pool:
-            log(f"Connecting and spamming...", "yellow")
+            log(f"Spawning workers...", "yellow")
 
             pool.map(
-                functools.partial(self.snipe, ssl=self.api_port == 443),
+                functools.partial(self.snipe, verbose="True", ssl=self.api_port == 443),
                 [attempts] * workers,
             )
 

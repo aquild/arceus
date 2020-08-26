@@ -3,6 +3,7 @@ import multiprocessing
 import ssl
 from tcp_latency import measure_latency
 from urllib.parse import urlparse
+import functools
 import statistics
 import traceback
 import pause
@@ -110,8 +111,8 @@ class Sniper(ABC):
         self.account.get_challenges()  # Necessary to facilitate auth ¯\_(ツ)_/¯
 
         with multiprocessing.Pool() as pool:
-            log(f"Connecting and spamming...", "yellow")
-            pool.map(self.snipe, [attempts] * workers)
+            log(f"Spawning workers...", "yellow")
+            pool.map(functools.partial(self.snipe, verbose=True), [attempts] * workers)
 
     def snipe(
         self,
@@ -149,12 +150,13 @@ class Blocker(Sniper):
             f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36\r\n\r\n"
         ).encode()
 
+
 class Changer(Sniper):
     @property
     def payload(self):
         return (
             f"PUT /user/profile/{self.account.uuid}/name HTTP/1.1\r\n"
-            f"Host: api.mojang.com\r\n" 
+            f"Host: api.mojang.com\r\n"
             f"Connection: keep-alive\r\n"
             f"Content-Length: 0\r\n"
             f"Accept: */*\r\n"
