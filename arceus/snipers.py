@@ -153,7 +153,7 @@ class Changer(Sniper):
     @property
     def payload(self):
         return (
-            f"PUT //user/profile/{self.account.uuid}/name HTTP/1.1\r\n"
+            f"PUT /user/profile/{self.account.uuid}/name HTTP/1.1\r\n"
             f"Host: api.mojang.com\r\n" 
             f"Connection: keep-alive\r\n"
             f"Content-Length: 0\r\n"

@@ -226,10 +226,12 @@ def benchmark(host: str, workers: int, offset: int, attempts: int, delay: int):
     result = benchmarker.result
     log(f"Results:", "green")
     log(f"Delay: {result['delay']}ms", "magenta")
+    requests = result["requests"]
     log(
-        f"Requests: {result['early'] + result['late']} Total | {result['early']} Early | {result['late']} Late",
+        f"Requests: {requests['early'] + requests['late']} Total | {requests['early']} Early | {requests['late']} Late",
         "magenta",
     )
+    log(f"Requests per second: {requests['rate']}", "magenta")
 
     exit()
 
