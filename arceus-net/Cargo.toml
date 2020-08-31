@@ -1,0 +1,23 @@
+[package]
+name = "arceus-net"
+version = "0.1.0"
+authors = ["Aquild <aquild@aquild.dev>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+futures = "0.3"
+tokio-native-tls = "0.1.0"
+
+[dependencies.tokio]
+version = "0.2"
+features = ["full"]
+
+[dependencies.pyo3]
+version = "0.11"
+features = ["extension-module"]
+
+[lib]
+name = "arceus_net"
+crate-type = ["cdylib"]
