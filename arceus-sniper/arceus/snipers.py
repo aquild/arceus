@@ -1,5 +1,4 @@
-import asyncio
-import multiprocessing
+from arceus_net import ConnectionManager, TLSConnectionManager
 import ssl
 from tcp_latency import measure_latency
 from urllib.parse import urlparse
@@ -16,39 +15,6 @@ from abc import ABC, abstractmethod
 
 from .account import Account
 from .logger import log
-
-
-class SocketManager:
-    def __init__(
-        self,
-        host: str,
-        port: int,
-        payload: bytes,
-        ssl: Union[bool, ssl.SSLContext] = True,
-        attempts: int = 50,
-    ):
-        self.host = host
-        self.port = port
-        self.ssl = ssl
-        self.payload = payload
-        self.attempts = attempts
-        self.conns = []
-
-    async def create_conn(self):
-        conn = await asyncio.open_connection(self.host, self.port, ssl=self.ssl)
-        self.conns.append(conn)
-
-    async def connect(self):
-        await asyncio.gather(
-            *(self.create_conn() for _ in range(self.attempts)), return_exceptions=True
-        )
-
-    async def spam(self):
-        for _reader, writer in self.conns:
-            writer.write(self.payload)
-        await asyncio.gather(
-            *(writer.drain() for _reader, writer in self.conns), return_exceptions=True
-        )
 
 
 def datetime_from_utc_to_local(utc_datetime):
@@ -74,7 +40,8 @@ class Sniper(ABC):
 
         parsed = urlparse(self.api_base)
         self.api_host = parsed.hostname
-        self.api_port = parsed.port or 443
+        self.api_port = parsed.port or {"https": 443, "http": 80}[parsed.scheme]
+        self.api_ssl = parsed.scheme == "https"
 
     @property
     @abstractmethod
@@ -95,9 +62,8 @@ class Sniper(ABC):
 
     def setup(
         self,
-        workers,
         attempts: int = 1,
-        keepalive: timedelta = timedelta(seconds=1),
+        timeout: timedelta = timedelta(seconds=3),
         verbose: bool = False,
     ):
         self.get_rtt()
@@ -110,31 +76,21 @@ class Sniper(ABC):
         self.account.authenticate()
         self.account.get_challenges()  # Necessary to facilitate auth ¯\_(ツ)_/¯
 
-        with multiprocessing.Pool() as pool:
-            log(f"Spawning workers...", "yellow")
-            pool.map(functools.partial(self.snipe, verbose=True), [attempts] * workers)
-
-    def snipe(
-        self,
-        attempts,
-        keepalive: timedelta = timedelta(seconds=1),
-        ssl: bool = True,
-        verbose: bool = False,
-    ):
-        sockets = SocketManager(
-            self.api_host, self.api_port, self.payload, attempts=attempts, ssl=ssl
+        conns = (
+            TLSConnectionManager(self.api_host, self.api_port, self.api_host)
+            if self.api_ssl
+            else ConnectionManager(self.api_host, self.api_port)
         )
 
-        pause.until(self.drop_time - keepalive)
+        pause.until(self.drop_time - timeout)
         if verbose:
             log(f"Connecting...", "yellow")
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(sockets.connect())
+        conns.connect(attempts)
 
         pause.until((self.drop_time + self.offset) - (self.rtt / 2))
         if verbose:
             log(f"Spamming...", "yellow")
-        loop.run_until_complete(sockets.spam())
+        conns.send(self.payload)
 
 
 class Blocker(Sniper):

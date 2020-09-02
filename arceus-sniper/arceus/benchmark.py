@@ -1,5 +1,4 @@
-import asyncio
-import multiprocessing
+from arceus_net import ConnectionManager, TLSConnectionManager
 import requests
 import functools
 from urllib.parse import urlparse
@@ -24,7 +23,8 @@ class Benchmarker(Sniper):
 
         parsed = urlparse(self.api_base)
         self.api_host = parsed.hostname
-        self.api_port = parsed.port or 443
+        self.api_port = parsed.port or {"https": 443, "http": 80}[parsed.scheme]
+        self.api_ssl = parsed.scheme == "https"
 
     @property
     def payload(self):
@@ -38,9 +38,8 @@ class Benchmarker(Sniper):
 
     def setup(
         self,
-        workers,
         attempts: int = 1,
-        keepalive: timedelta = timedelta(seconds=1),
+        timeout: timedelta = timedelta(seconds=3),
         verbose: bool = False,
     ):
         if verbose:
@@ -51,13 +50,21 @@ class Benchmarker(Sniper):
             json={"time": self.drop_time.timestamp() * 1000},
         )
 
-        with multiprocessing.Pool() as pool:
-            log(f"Spawning workers...", "yellow")
+        conns = (
+            TLSConnectionManager(self.api_host, self.api_port, self.api_host)
+            if self.api_ssl
+            else ConnectionManager(self.api_host, self.api_port)
+        )
 
-            pool.map(
-                functools.partial(self.snipe, verbose="True", ssl=self.api_port == 443),
-                [attempts] * workers,
-            )
+        pause.until(self.drop_time - timeout)
+        if verbose:
+            log(f"Connecting...", "yellow")
+        conns.connect(attempts)
+
+        pause.until((self.drop_time + self.offset) - (self.rtt / 2))
+        if verbose:
+            log(f"Spamming...", "yellow")
+        conns.send(self.payload)
 
     @property
     def result(self):
