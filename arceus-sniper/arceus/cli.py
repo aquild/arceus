@@ -39,16 +39,9 @@ def cli():
 @cli.command()
 @click.option("-t", "--target", type=str, help="Name to block")
 @click.option("-c", "--config", "config_file", type=str, help="Path to config file")
-@click.option(
-    "-w",
-    "--workers",
-    type=int,
-    default=min(4, os.cpu_count()),
-    help="Number of workers",
-)
 @click.option("-a", "--attempts", type=int, default=20, help="Number of block attempts")
-def block(target: str, config_file: str, workers: int, attempts: int):
-    log("Arceus v1", "yellow", figlet=True)
+def block(target: str, config_file: str, attempts: int):
+    log("Arceus v2", "yellow", figlet=True)
 
     if not target:
         target = prompt(
@@ -103,7 +96,7 @@ def block(target: str, config_file: str, workers: int, attempts: int):
     try:
         blocker = Blocker(target, account, offset=offset)
         log(f"Setting up blocker...", "yellow")
-        blocker.setup(workers, attempts=attempts, verbose=True)
+        blocker.setup(attempts=attempts, verbose=True)
     except AttributeError:
         traceback.print_exc()
         exit(message="Getting drop time failed. Name may be unavailable.")
@@ -112,7 +105,8 @@ def block(target: str, config_file: str, workers: int, attempts: int):
         log(f'Success! Account "{account.email}" blocked target name.', "green")
     else:
         log(
-            f'Failure! Account "{account.email}" failed to block target name. 😢', "red",
+            f'Failure! Account "{account.email}" failed to block target name. 😢',
+            "red",
         )
 
     exit()
@@ -122,13 +116,10 @@ def block(target: str, config_file: str, workers: int, attempts: int):
 @click.option("-t", "--target", type=str, help="Name to block")
 @click.option("-c", "--config", "config_file", type=str, help="Path to config file")
 @click.option(
-    "-w", "--workers", type=int, default=1, help="Number of workers, EXPERIMENTAL"
-)
-@click.option(
     "-a", "--attempts", type=int, default=100, help="Number of block attempts"
 )
-def snipe(target: str, config_file: str, workers: int, attempts: int):
-    log("Arceus v1", "yellow", figlet=True)
+def snipe(target: str, config_file: str, attempts: int):
+    log("Arceus v2", "yellow", figlet=True)
 
     if not target:
         target = prompt(
@@ -184,7 +175,7 @@ def snipe(target: str, config_file: str, workers: int, attempts: int):
     try:
         blocker = Changer(target, account, offset=offset)
         log(f"Setting up sniper...", "yellow")
-        blocker.setup(workers, attempts=attempts, verbose=True)
+        blocker.setup(attempts=attempts, verbose=True)
     except AttributeError:
         traceback.print_exc()
         exit(message="Getting drop time failed. Name may be unavailable.")
@@ -193,7 +184,8 @@ def snipe(target: str, config_file: str, workers: int, attempts: int):
         log(f'Success! Account "{account.email}" blocked target name.', "green")
     else:
         log(
-            f'Failure! Account "{account.email}" failed to block target name. 😢', "red",
+            f'Failure! Account "{account.email}" failed to block target name. 😢',
+            "red",
         )
 
     exit()
@@ -207,21 +199,18 @@ def snipe(target: str, config_file: str, workers: int, attempts: int):
     default="https://snipe-benchmark.herokuapp.com",
     help="Benchmark API to use",
 )
-@click.option(
-    "-w", "--workers", type=int, default=1, help="Number of workers, EXPERIMENTAL"
-)
 @click.option("-o", "--offset", type=int, default=0, help="Request timing offset")
 @click.option("-a", "--attempts", type=int, default=100, help="Number of attempts")
 @click.option("-d", "--delay", type=float, default=15)
-def benchmark(host: str, workers: int, offset: int, attempts: int, delay: int):
-    log("Arceus v1", "yellow", figlet=True)
+def benchmark(host: str, offset: int, attempts: int, delay: int):
+    log("Arceus v2", "yellow", figlet=True)
 
     benchmarker = Benchmarker(
         datetime.now() + timedelta(seconds=delay),
         offset=timedelta(milliseconds=offset),
         api_base=host,
     )
-    benchmarker.setup(workers, attempts=attempts, verbose=True)
+    benchmarker.setup(attempts=attempts, verbose=True)
 
     result = benchmarker.result
     log(f"Results:", "green")

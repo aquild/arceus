@@ -8,11 +8,9 @@ edition = "2018"
 
 [dependencies]
 futures = "0.3"
-tokio-native-tls = "0.1.0"
-
-[dependencies.tokio]
-version = "0.2"
-features = ["full"]
+futures-io = "0.3"
+async-std = "1.6"
+async-tls = "0.9"
 
 [dependencies.pyo3]
 version = "0.11"
