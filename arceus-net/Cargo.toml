@@ -10,7 +10,11 @@ edition = "2018"
 futures = "0.3"
 futures-io = "0.3"
 async-std = "1.6"
-async-tls = "0.9"
+# rustls = "0.18"
+
+[dependencies.async-tls]
+version = "0.9"
+features = ["early-data"]
 
 [dependencies.pyo3]
 version = "0.11"

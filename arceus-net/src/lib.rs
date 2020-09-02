@@ -74,19 +74,20 @@ impl TLSConnectionManager {
     }
 
     fn connect(&mut self, connections: u32) -> PyResult<()> {
+        let connector = TlsConnector::default();
         async fn create_stream(
+            connector: &TlsConnector,
             address: SocketAddr,
             domain: &String,
         ) -> Option<TlsStream<TcpStream>> {
             let stream = TcpStream::connect(address).await.unwrap();
-            let connector = TlsConnector::default();
             connector.connect(domain, stream).await.ok()
         }
 
         task::block_on(async {
             self.streams.extend(
                 future::join_all(
-                    (0..connections).map(|_| create_stream(self.address, &self.domain)),
+                    (0..connections).map(|_| create_stream(&connector, self.address, &self.domain)),
                 )
                 .await
                 .into_iter()

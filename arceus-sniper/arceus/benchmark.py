@@ -59,12 +59,20 @@ class Benchmarker(Sniper):
         pause.until(self.drop_time - timeout)
         if verbose:
             log(f"Connecting...", "yellow")
+        start = datetime.now()
         conns.connect(attempts)
+        conn_time = datetime.now() - start
+        if verbose:
+            log(f"Took {conn_time.microseconds / 1000}ms to connect", "magenta")
 
         pause.until((self.drop_time + self.offset) - (self.rtt / 2))
         if verbose:
             log(f"Spamming...", "yellow")
+        start = datetime.now()
         conns.send(self.payload)
+        send_time = datetime.now() - start
+        if verbose:
+            log(f"Took {send_time.microseconds / 1000}ms to spam", "magenta")
 
     @property
     def result(self):
