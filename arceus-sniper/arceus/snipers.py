@@ -107,7 +107,7 @@ class Blocker(Sniper):
         ).encode()
 
 
-class Changer(Sniper):
+class Transferer(Sniper):
     @property
     def payload(self):
         return (

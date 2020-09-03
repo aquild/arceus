@@ -1,6 +1,6 @@
 [package]
 name = "arceus-net"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Aquild <aquild@aquild.dev>"]
 edition = "2018"
 
@@ -10,7 +10,6 @@ edition = "2018"
 futures = "0.3"
 futures-io = "0.3"
 async-std = "1.6"
-# rustls = "0.18"
 
 [dependencies.async-tls]
 version = "0.9"

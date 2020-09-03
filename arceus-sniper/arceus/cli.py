@@ -9,9 +9,9 @@ import click
 from PyInquirer import style_from_dict, Token, prompt
 
 from .account import Account, InvalidAccountError, RatelimitedError
-from .snipers import Blocker, Changer
+from .snipers import Blocker, Transferer
 from .benchmark import Benchmarker
-from .logger import log
+from .logger import log, log_logo
 
 style = style_from_dict(
     {
@@ -41,7 +41,7 @@ def cli():
 @click.option("-c", "--config", "config_file", type=str, help="Path to config file")
 @click.option("-a", "--attempts", type=int, default=20, help="Number of block attempts")
 def block(target: str, config_file: str, attempts: int):
-    log("Arceus v2", "yellow", figlet=True)
+    log_logo()
 
     if not target:
         target = prompt(
@@ -118,8 +118,8 @@ def block(target: str, config_file: str, attempts: int):
 @click.option(
     "-a", "--attempts", type=int, default=100, help="Number of block attempts"
 )
-def snipe(target: str, config_file: str, attempts: int):
-    log("Arceus v2", "yellow", figlet=True)
+def transfer(target: str, config_file: str, attempts: int):
+    log_logo()
 
     if not target:
         target = prompt(
@@ -173,7 +173,7 @@ def snipe(target: str, config_file: str, attempts: int):
             exit()
 
     try:
-        blocker = Changer(target, account, offset=offset)
+        blocker = Transferer(target, account, offset=offset)
         log(f"Setting up sniper...", "yellow")
         blocker.setup(attempts=attempts, verbose=True)
     except AttributeError:
@@ -203,7 +203,7 @@ def snipe(target: str, config_file: str, attempts: int):
 @click.option("-a", "--attempts", type=int, default=100, help="Number of attempts")
 @click.option("-d", "--delay", type=float, default=15)
 def benchmark(host: str, offset: int, attempts: int, delay: int):
-    log("Arceus v2", "yellow", figlet=True)
+    log_logo()
 
     benchmarker = Benchmarker(
         datetime.now() + timedelta(seconds=delay),
