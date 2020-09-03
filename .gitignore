@@ -1,2 +1,5 @@
 # Editor
 .vscode/
+
+# Config file
+config.json
