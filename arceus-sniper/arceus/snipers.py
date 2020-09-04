@@ -56,6 +56,15 @@ class Sniper(ABC):
             datetime.strptime(countdown, "%Y-%m-%dT%H:%M:%S.000Z")
         )
 
+    def get_drop_later(self, delay=timedelta(days=1)):
+        page = requests.get(f"https://namemc.com/search?q={self.target}")
+        soup = BeautifulSoup(page.content, "html.parser")
+        countdown = soup.find_all("time")[1].attrs["datetime"]
+        change_time = datetime_from_utc_to_local(
+            datetime.strptime(countdown, "%Y-%m-%dT%H:%M:%S.000Z")
+        )
+        self.drop_time = change_time + timedelta(days=37) + delay
+
     def get_rtt(self, samples: int = 5):
         latency = measure_latency(host=self.api_host, port=self.api_port, runs=samples)
         self.rtt = timedelta(milliseconds=statistics.mean(latency))
@@ -64,10 +73,14 @@ class Sniper(ABC):
         self,
         attempts: int = 1,
         timeout: timedelta = timedelta(seconds=3),
+        later: timedelta = timedelta(seconds=0),
         verbose: bool = False,
     ):
         self.get_rtt()
-        self.get_drop()
+        if later:
+            self.get_drop_later(delay=later)
+        else:
+            self.get_drop()
         log(f"Waiting for name drop on account {self.account.email}...", "yellow")
 
         pause.until(self.drop_time - timedelta(seconds=10))

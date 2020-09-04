@@ -40,7 +40,8 @@ def cli():
 @click.option("-t", "--target", type=str, help="Name to block")
 @click.option("-c", "--config", "config_file", type=str, help="Path to config file")
 @click.option("-a", "--attempts", type=int, default=20, help="Number of block attempts")
-def block(target: str, config_file: str, attempts: int):
+@click.option("-l", "--later", type=int, default=0, help="Days later to snipe")
+def block(target: str, config_file: str, attempts: int, later: int):
     log_logo()
 
     if not target:
@@ -96,7 +97,7 @@ def block(target: str, config_file: str, attempts: int):
     try:
         blocker = Blocker(target, account, offset=offset)
         log(f"Setting up blocker...", "yellow")
-        blocker.setup(attempts=attempts, verbose=True)
+        blocker.setup(attempts=attempts, later=timedelta(days=later), verbose=True)
     except AttributeError:
         traceback.print_exc()
         exit(message="Getting drop time failed. Name may be unavailable.")
@@ -118,7 +119,8 @@ def block(target: str, config_file: str, attempts: int):
 @click.option(
     "-a", "--attempts", type=int, default=100, help="Number of block attempts"
 )
-def transfer(target: str, config_file: str, attempts: int):
+@click.option("-l", "--later", type=int, default=0, help="Days later to snipe")
+def transfer(target: str, config_file: str, attempts: int, later: int):
     log_logo()
 
     if not target:
@@ -174,16 +176,16 @@ def transfer(target: str, config_file: str, attempts: int):
     try:
         blocker = Transferer(target, account, offset=offset)
         log(f"Setting up sniper...", "yellow")
-        blocker.setup(attempts=attempts, verbose=True)
+        blocker.setup(attempts=attempts, later=timedelta(days=later), verbose=True)
     except AttributeError:
         traceback.print_exc()
         exit(message="Getting drop time failed. Name may be unavailable.")
 
     if account.check_blocked(target):
-        log(f'Success! Account "{account.email}" blocked target name.', "green")
+        log(f'Success! Account "{account.email}" sniped target name.', "green")
     else:
         log(
-            f'Failure! Account "{account.email}" failed to block target name. 😢',
+            f'Failure! Account "{account.email}" failed to snipe target name. 😢',
             "red",
         )
 
