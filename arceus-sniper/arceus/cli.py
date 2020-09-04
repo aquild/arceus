@@ -148,7 +148,6 @@ def transfer(target: str, config_file: str, attempts: int):
         offset = timedelta(milliseconds=config["offset"])
     else:
         offset = timedelta(milliseconds=0)
-    log(f"Offset: {offset.milliseconds}")
 
     log("Verifying accounts...", "yellow")
 

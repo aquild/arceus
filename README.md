@@ -2,6 +2,7 @@
 
 ### Blocked so far
 
+- Teraflop
 - Mellowed
 - ThreePing
 - HackerGuy
