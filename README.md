@@ -21,6 +21,10 @@ You can install using pip:
 pip install arceus
 ```
 
+## Discussion and Support
+
+Join the [Discord Server](https://discord.gg/nhZDSEM) for support, feature suggestions, bug reports, usage help, and general discussion.
+
 ## Usage
 
 First, you'll need to create a `config.json`:
@@ -72,3 +76,7 @@ _Benchmarking doesn't read `config.json`, if you want to specify an offset, use 
 ```sh
 arceus benchmark
 ```
+
+## Contributing
+
+Feel free to fork the project and make a pull request on GitHub.
