@@ -25,4 +25,4 @@ def log(string, color, font="slant", figlet=False):
 
 
 def log_logo():
-    log(f"Arceus v{__version__.split('.')[0]}", "yellow", figlet=True)
+    log(f"Arceus v{'.'.join(__version__.split('.')[:2])}", "yellow", figlet=True)

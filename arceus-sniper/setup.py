@@ -8,12 +8,12 @@ except IOError:
 
 setup(
     name="arceus",
-    version="2.0.1",
+    version="2.1.0",
     description="Minecraft name sniper.",
     author="Aquild",
     packages=find_packages(),
     install_requires=[
-        "arceus-net,"
+        "arceus-net",
         "requests",
         "requests-random-user-agent",
         "tcp-latency",
@@ -26,6 +26,7 @@ setup(
         "pyfiglet",
     ],
     long_description=long_description,
+    long_description_content_type="text/markdown",
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.8",

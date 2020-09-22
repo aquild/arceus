@@ -10,7 +10,7 @@ import time
 from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
-from typing import Union
+import typing
 from abc import ABC, abstractmethod
 
 from .account import Account
@@ -29,12 +29,12 @@ class Sniper(ABC):
     def __init__(
         self,
         target: str,
-        account: Account,
+        accounts: typing.List[Account],
         offset: timedelta = timedelta(seconds=0),
         api_base: str = "https://api.mojang.com",
     ):
         self.target = target
-        self.account = account
+        self.accounts = accounts
         self.offset = offset
         self.api_base = api_base
 
@@ -45,7 +45,8 @@ class Sniper(ABC):
 
     @property
     @abstractmethod
-    def payload(self):
+    def payloads(self):
+        """Get payloads to send"""
         pass
 
     def get_drop(self):
@@ -81,13 +82,14 @@ class Sniper(ABC):
             self.get_drop_later(delay=later)
         else:
             self.get_drop()
-        log(f"Waiting for name drop on account {self.account.email}...", "yellow")
+        log(f"Waiting for name drop...", "yellow")
 
         pause.until(self.drop_time - timedelta(seconds=10))
         if verbose:
             log("Authenticating...", "yellow")
-        self.account.authenticate()
-        self.account.get_challenges()  # Necessary to facilitate auth ¯\_(ツ)_/¯
+        for account in self.accounts:
+            account.authenticate()
+            account.get_challenges()  # Necessary to facilitate auth ¯\_(ツ)_/¯
 
         conns = (
             TLSConnectionManager(self.api_host, self.api_port, self.api_host)
@@ -103,32 +105,40 @@ class Sniper(ABC):
         pause.until((self.drop_time + self.offset) - (self.rtt / 2))
         if verbose:
             log(f"Spamming...", "yellow")
-        conns.send(self.payload)
+        conns.send(self.payloads)
 
 
 class Blocker(Sniper):
     @property
-    def payload(self):
-        return (
-            f"PUT /user/profile/agent/minecraft/name/{self.target} HTTP/1.1\r\n"
-            f"Host: api.mojang.com\r\n"
-            f"Connection: keep-alive\r\n"
-            f"Content-Length: 0\r\n"
-            f"Accept: */*\r\n"
-            f"Authorization: Bearer {self.account.token}\r\n"
-            f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36\r\n\r\n"
-        ).encode()
+    def payloads(self):
+        return [
+            (
+                f"PUT /user/profile/agent/minecraft/name/{self.target} HTTP/1.1\r\n"
+                f"Host: api.mojang.com\r\n"
+                f"Connection: keep-alive\r\n"
+                f"Content-Length: 0\r\n"
+                f"Accept: */*\r\n"
+                f"Authorization: Bearer {account.token}\r\n"
+                f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36\r\n\r\n"
+            ).encode()
+            for account in self.accounts
+        ]
 
 
-class Transferer(Sniper):
+class Transferrer(Sniper):
     @property
-    def payload(self):
-        return (
-            f"PUT /user/profile/{self.account.uuid}/name HTTP/1.1\r\n"
-            f"Host: api.mojang.com\r\n"
-            f"Connection: keep-alive\r\n"
-            f"Content-Length: 0\r\n"
-            f"Accept: */*\r\n"
-            f"Authorization: Bearer {self.account.token}\r\n"
-            f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36\r\n\r\n"
-        ).encode()
+    def payloads(self):
+        return [
+            (
+                f"PUT /user/profile/{account.uuid}/name HTTP/1.1\r\n"
+                f"Host: api.mojang.com\r\n"
+                f"Connection: keep-alive\r\n"
+                f"Content-Length: 0\r\n"
+                f"Accept: */*\r\n"
+                f"Authorization: Bearer {account.token}\r\n"
+                f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36\r\n\r\n"
+                f"\r\n"
+                f'{"name": {self.target}, "password": {account.password}}\r\n'
+            ).encode()
+            for account in self.accounts
+        ]

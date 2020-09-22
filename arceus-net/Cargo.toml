@@ -1,6 +1,6 @@
 [package]
 name = "arceus-net"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Aquild <aquild@aquild.dev>"]
 edition = "2018"
 
@@ -12,11 +12,11 @@ futures-io = "0.3"
 async-std = "1.6"
 
 [dependencies.async-tls]
-version = "0.9"
+version = "0.10"
 features = ["early-data"]
 
 [dependencies.pyo3]
-version = "0.11"
+version = "0.12"
 features = ["extension-module"]
 
 [lib]

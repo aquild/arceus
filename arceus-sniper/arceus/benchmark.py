@@ -27,14 +27,16 @@ class Benchmarker(Sniper):
         self.api_ssl = parsed.scheme == "https"
 
     @property
-    def payload(self):
-        return (
-            f"GET /arceus-v{__version__}/snipe HTTP/1.1\r\n"
-            f"Host: {self.api_host}\r\n"
-            f"Content-Length: 0\r\n"
-            f"Accept: */*\r\n"
-            f"User-Agent: Arceus v1\r\n\r\n"
-        ).encode()
+    def payloads(self):
+        return [
+            (
+                f"GET /arceus-v{__version__}/snipe HTTP/1.1\r\n"
+                f"Host: {self.api_host}\r\n"
+                f"Content-Length: 0\r\n"
+                f"Accept: */*\r\n"
+                f"User-Agent: Arceus v1\r\n\r\n"
+            ).encode()
+        ]
 
     def setup(
         self,
@@ -69,7 +71,7 @@ class Benchmarker(Sniper):
         if verbose:
             log(f"Spamming...", "yellow")
         start = datetime.now()
-        conns.send(self.payload)
+        conns.send(self.payloads)
         send_time = datetime.now() - start
         if verbose:
             log(f"Took {send_time.microseconds / 1000}ms to spam", "magenta")

@@ -21,10 +21,6 @@ You can install using pip:
 pip install arceus
 ```
 
-## Discussion and Support
-
-Join the [Discord Server](https://discord.gg/nhZDSEM) for support, feature suggestions, bug reports, usage help, and general discussion.
-
 ## Usage
 
 First, you'll need to create a `config.json`:

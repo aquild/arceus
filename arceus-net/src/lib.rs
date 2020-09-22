@@ -45,9 +45,12 @@ impl ConnectionManager {
         Ok(())
     }
 
-    fn send(&mut self, payload: &[u8]) -> PyResult<()> {
+    fn send(&mut self, payloads: Vec<&[u8]>) -> PyResult<()> {
+        let mut payloads = payloads.iter().cycle();
         task::block_on(future::join_all(
-            self.streams.iter_mut().map(|s| s.write_all(payload)),
+            self.streams
+                .iter_mut()
+                .map(|s| s.write_all(payloads.next().unwrap())),
         ));
 
         Ok(())
@@ -98,9 +101,12 @@ impl TLSConnectionManager {
         Ok(())
     }
 
-    fn send(&mut self, payload: &[u8]) -> PyResult<()> {
+    fn send(&mut self, payloads: Vec<&[u8]>) -> PyResult<()> {
+        let mut payloads = payloads.iter().cycle();
         task::block_on(future::join_all(
-            self.streams.iter_mut().map(|s| s.write_all(payload)),
+            self.streams
+                .iter_mut()
+                .map(|s| s.write_all(payloads.next().unwrap())),
         ));
 
         Ok(())
