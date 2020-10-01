@@ -27,10 +27,13 @@ First, you'll need to create a `config.json`:
 
 ```jsonc
 {
-  "account": {
-    "email": <ACCOUNT_EMAIL>,
-    "password": <ACCOUNT_PASSWD>
-  },
+  "accounts": [
+    {
+      "email": <ACCOUNT_EMAIL>,
+      "password": <ACCOUNT_PASSWD>
+    }
+    ...
+  ]
   "offset": <REQUEST_OFFSET>
 }
 ```
