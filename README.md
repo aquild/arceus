@@ -13,6 +13,10 @@ The arceus project is licensed under GNU GPLv3 or later. This means you CANNOT r
 - Low latency by opening the TCP connections before sending requests
 - High requests/second by bypassing HTTP overhead
 
+## Discussion and Support
+
+Join the [Discord Server](https://discord.gg/gxwedaE) for support, feature suggestions, usage help, and general discussion.
+
 ## Installation
 
 You can install using pip:
