@@ -159,7 +159,7 @@ def transfer(target: str, config_file: str, attempts: int, later: int):
         config_file = ask_config_file()
 
     try:
-        config = Config({**json.load(open(config_file)), attempts: attempts})
+        config = Config({**json.load(open(config_file)), "attempts": attempts})
     except json.JSONDecodeError:
         exit("Config file is not valid JSON! Exiting...")
 
@@ -187,14 +187,14 @@ def transfer(target: str, config_file: str, attempts: int, later: int):
         traceback.print_exc()
         exit(message="Getting drop time failed. Name may be unavailable.")
 
-    for account in config.accounts:
-        if account.check_blocked(target):
-            log(f'Success! Account "{account.email}" sniped target name.', "green")
-        else:
-            log(
-                f'Failure! Account "{account.email}" failed to snipe target name. 😢',
-                "red",
-            )
+    # for account in config.accounts:
+    #     if account.check_blocked(target):
+    #         log(f'Success! Account "{account.email}" sniped target name.', "green")
+    #     else:
+    #         log(
+    #             f'Failure! Account "{account.email}" failed to snipe target name. 😢',
+    #             "red",
+    #         )
 
     exit()
 
