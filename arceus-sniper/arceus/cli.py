@@ -101,7 +101,10 @@ def block(target: str, config_file: str, attempts: int, later: int):
     if not config_file:
         config_file = ask_config_file()
 
-    config = Config({**json.load(open(config_file)), attempts: attempts})
+    try:
+        config = Config({**json.load(open(config_file)), attempts: attempts})
+    except json.JSONDecodeError:
+        exit("Config file is not valid JSON! Exiting...")
 
     log("Verifying accounts...", "yellow")
 
@@ -155,7 +158,10 @@ def transfer(target: str, config_file: str, attempts: int, later: int):
     if not config_file:
         config_file = ask_config_file()
 
-    config = Config({**json.load(open(config_file)), attempts: attempts})
+    try:
+        config = Config({**json.load(open(config_file)), attempts: attempts})
+    except json.JSONDecodeError:
+        exit("Config file is not valid JSON! Exiting...")
 
     log("Verifying accounts...", "yellow")
 

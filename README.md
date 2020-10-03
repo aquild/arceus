@@ -25,6 +25,8 @@ pip install arceus
 
 First, you'll need to create a `config.json`:
 
+**IMPORTANT**: If you don't know JSON syntax, please read [this tutorial](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON) and make sure your JSON is valid _before_ asking for help.
+
 ```jsonc
 {
   "accounts": [
