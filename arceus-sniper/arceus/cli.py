@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+import typing
 import traceback
 from datetime import datetime, timedelta
 import json
@@ -8,10 +9,11 @@ import json
 import click
 from PyInquirer import style_from_dict, Token, prompt
 
-from .account import Account, InvalidAccountError, RatelimitedError
+from .account import Account
 from .snipers import Blocker, Transferrer
 from .benchmark import Benchmarker
 from .logger import log, log_logo
+
 
 style = style_from_dict(
     {
@@ -24,6 +26,54 @@ style = style_from_dict(
         Token.Question: "",
     }
 )
+
+
+class Config:
+    def __init__(self, config_json: dict):
+        self.offset: timedelta = timedelta(
+            milliseconds=config_json["offset"] if "config" in config_json else 0
+        )
+        self.accounts: typing.List[Account] = [
+            Account(account["email"], account["password"])
+            for account in config_json["accounts"]
+        ]
+
+
+def ask_target() -> str:
+    return prompt(
+        {
+            "type": "input",
+            "name": "target",
+            "message": "Enter the username you want to block:",
+        }
+    )["target"]
+
+
+def ask_config_file() -> str:
+    return prompt(
+        [
+            {
+                "type": "input",
+                "name": "config_file",
+                "message": "Enter path to config file",
+                "default": "config.json",
+            }
+        ]
+    )["config_file"]
+
+
+def auth_fail_prompt():
+    if not prompt(
+        [
+            {
+                "type": "confirm",
+                "message": "One or more accounts failed to authenticate. Continue?",
+                "name": "continue",
+                "default": False,
+            }
+        ]
+    )["continue"]:
+        exit()
 
 
 def exit(message: str = None):
@@ -45,43 +95,17 @@ def block(target: str, config_file: str, attempts: int, later: int):
     log_logo()
 
     if not target:
-        target = prompt(
-            {
-                "type": "input",
-                "name": "target",
-                "message": "Enter the username you want to block:",
-            }
-        )["target"]
+        target = ask_target()
 
     if not config_file:
-        config_file = prompt(
-            [
-                {
-                    "type": "input",
-                    "name": "config_file",
-                    "message": "Enter path to config file",
-                    "default": "config.json",
-                }
-            ]
-        )["config_file"]
+        config_file = ask_config_file()
 
-    config = json.load(open(config_file))
-
-    accounts = [
-        Account(account["email"], account["password"]) for account in config["accounts"]
-    ]
-
-    print(f"Accounts: {accounts}")
-
-    if "offset" in config:
-        offset = timedelta(milliseconds=config["offset"])
-    else:
-        offset = timedelta(milliseconds=0)
+    config = Config(json.load(open(config_file)))
 
     log("Verifying accounts...", "yellow")
 
     auth_fail = False
-    for account in accounts:
+    for account in config.accounts:
         try:
             account.authenticate()
             if account.get_challenges():
@@ -91,27 +115,18 @@ def block(target: str, config_file: str, attempts: int, later: int):
             auth_fail = True
             log(f'Failed to authenticate account "{account.email}"', "magenta")
 
-    if auth_fail and not prompt(
-        [
-            {
-                "type": "confirm",
-                "message": "One or more accounts failed to authenticate. Continue?",
-                "name": "continue",
-                "default": False,
-            }
-        ]
-    )["continue"]:
-        exit()
+    if auth_fail:
+        auth_fail_prompt()
 
     try:
-        blocker = Blocker(target, accounts, offset=offset)
+        blocker = Blocker(target, config.accounts, offset=config.offset)
         log(f"Setting up blocker...", "yellow")
         blocker.setup(attempts=attempts, later=timedelta(days=later), verbose=True)
     except AttributeError:
         traceback.print_exc()
         exit(message="Getting drop time failed. Name may be unavailable.")
-    
-    for account in accounts:
+
+    for account in config.accounts:
         if account.check_blocked(target):
             log(f'Success! Account "{account.email}" blocked target name.', "green")
         else:
@@ -134,40 +149,17 @@ def transfer(target: str, config_file: str, attempts: int, later: int):
     log_logo()
 
     if not target:
-        target = prompt(
-            {
-                "type": "input",
-                "name": "target",
-                "message": "Enter the username you want to snipe:",
-            }
-        )["target"]
+        target = ask_target()
 
     if not config_file:
-        config_file = prompt(
-            [
-                {
-                    "type": "input",
-                    "name": "config_file",
-                    "message": "Enter path to config file",
-                    "default": "config.json",
-                }
-            ]
-        )["config_file"]
+        config_file = ask_config_file()
 
-    config = json.load(open(config_file))
-    accounts = [
-        Account(account["email"], account["password"]) for account in config["accounts"]
-    ]
-
-    if "offset" in config:
-        offset = timedelta(milliseconds=config["offset"])
-    else:
-        offset = timedelta(milliseconds=0)
+    config = Config(json.load(open(config_file)))
 
     log("Verifying accounts...", "yellow")
 
     auth_fail = False
-    for account in accounts:
+    for account in config.accounts:
         try:
             account.authenticate()
             if account.get_challenges():
@@ -177,65 +169,18 @@ def transfer(target: str, config_file: str, attempts: int, later: int):
             auth_fail = True
             log(f'Failed to authenticate account "{account.email}"', "magenta")
 
-    if auth_fail and not prompt(
-        [
-            {
-                "type": "confirm",
-                "message": "One or more accounts failed to authenticate. Continue?",
-                "name": "continue",
-                "default": False,
-            }
-        ]
-    )["continue"]:
-        exit()
+    if auth_fail:
+        auth_fail_prompt()
 
-    accounts = [
-        Account(account["email"], account["password"]) for account in config["accounts"]
-    ]
-
-    print(f"Accounts: {accounts}")
-
-    if "offset" in config:
-        offset = timedelta(milliseconds=config["offset"])
-    else:
-        offset = timedelta(milliseconds=0)
-
-    log("Verifying accounts...", "yellow")
-
-    auth_fail = False
-    for account in accounts:
-        print("1")
-        try:
-            account.authenticate()
-            if account.get_challenges():
-                auth_fail = True
-                log(f'Account "{account.email}" is secured', "magenta")
-            print("2")
-        except:
-            print("fail")
-            auth_fail = True
-            log(f'Failed to authenticate account "{account.email}"', "magenta")
-
-    if auth_fail and not prompt(
-        [
-            {
-                "type": "confirm",
-                "message": "One or more accounts failed to authenticate. Continue?",
-                "name": "continue",
-                "default": False,
-            }
-        ]
-    )["continue"]:
-        exit()
     try:
-        transferrer = Transferrer(target, account, offset=offset)
+        transferrer = Transferrer(target, config.accounts, offset=config.offset)
         log(f"Setting up sniper...", "yellow")
         transferrer.setup(attempts=attempts, later=timedelta(days=later), verbose=True)
     except AttributeError:
         traceback.print_exc()
         exit(message="Getting drop time failed. Name may be unavailable.")
 
-    for account in accounts:
+    for account in config.accounts:
         if account.check_blocked(target):
             log(f'Success! Account "{account.email}" sniped target name.', "green")
         else:
