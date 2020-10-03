@@ -1,5 +1,9 @@
 ![Arceus's logo](./banner.png)
 
+[![Discord](https://img.shields.io/discord/761790519646617632?label=discord&style=for-the-badge)](https://discord.gg/gxwedaE)
+[![PyPI - Downloads](https://img.shields.io/pypi/dw/arceus?style=for-the-badge)](https://pypi.org/project/arceus/)
+![License](https://img.shields.io/github/license/aquild/arceus?style=for-the-badge)
+
 # Arceus
 
 The best (probably) free Minecraft name sniper.
