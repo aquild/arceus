@@ -25,11 +25,7 @@ Join the [Discord Server](https://discord.gg/gxwedaE) for support, feature sugge
 
 ## Installation
 
-You can install using pip:
-
-```sh
-pip install arceus
-```
+You can read the installation instructions [here](./INSTALLATION.md).
 
 ## Usage
 
