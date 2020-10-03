@@ -34,7 +34,8 @@ First, you'll need to create a `config.json`:
     }
     ...
   ]
-  "offset": <REQUEST_OFFSET>
+  "offset": <REQUEST_OFFSET>,
+  "attempts": <REQUEST_ATTEMPTS>
 }
 ```
 

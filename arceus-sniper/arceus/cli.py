@@ -33,6 +33,7 @@ class Config:
         self.offset: timedelta = timedelta(
             milliseconds=config_json["offset"] if "config" in config_json else 0
         )
+        self.attempts: int = config_json["attempts"]
         self.accounts: typing.List[Account] = [
             Account(account["email"], account["password"])
             for account in config_json["accounts"]
@@ -100,7 +101,7 @@ def block(target: str, config_file: str, attempts: int, later: int):
     if not config_file:
         config_file = ask_config_file()
 
-    config = Config(json.load(open(config_file)))
+    config = Config({**json.load(open(config_file)), attempts: attempts})
 
     log("Verifying accounts...", "yellow")
 
@@ -154,7 +155,7 @@ def transfer(target: str, config_file: str, attempts: int, later: int):
     if not config_file:
         config_file = ask_config_file()
 
-    config = Config(json.load(open(config_file)))
+    config = Config({**json.load(open(config_file)), attempts: attempts})
 
     log("Verifying accounts...", "yellow")
 

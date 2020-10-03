@@ -77,6 +77,8 @@ class Sniper(ABC):
         later: timedelta = timedelta(seconds=0),
         verbose: bool = False,
     ):
+        attempts *= len(self.accounts)
+
         self.get_rtt()
         if later:
             self.get_drop_later(delay=later)
