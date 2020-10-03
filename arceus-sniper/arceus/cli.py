@@ -110,14 +110,15 @@ def block(target: str, config_file: str, attempts: int, later: int):
     except AttributeError:
         traceback.print_exc()
         exit(message="Getting drop time failed. Name may be unavailable.")
-
-    if account.check_blocked(target):
-        log(f'Success! Account "{account.email}" blocked target name.', "green")
-    else:
-        log(
-            f'Failure! Account "{account.email}" failed to block target name. 😢',
-            "red",
-        )
+    
+    for account in accounts:
+        if account.check_blocked(target):
+            log(f'Success! Account "{account.email}" blocked target name.', "green")
+        else:
+            log(
+                f'Failure! Account "{account.email}" failed to block target name. 😢',
+                "red",
+            )
 
     exit()
 
@@ -234,13 +235,14 @@ def transfer(target: str, config_file: str, attempts: int, later: int):
         traceback.print_exc()
         exit(message="Getting drop time failed. Name may be unavailable.")
 
-    if account.check_blocked(target):
-        log(f'Success! Account "{account.email}" sniped target name.', "green")
-    else:
-        log(
-            f'Failure! Account "{account.email}" failed to snipe target name. 😢',
-            "red",
-        )
+    for account in accounts:
+        if account.check_blocked(target):
+            log(f'Success! Account "{account.email}" sniped target name.', "green")
+        else:
+            log(
+                f'Failure! Account "{account.email}" failed to snipe target name. 😢',
+                "red",
+            )
 
     exit()
 
