@@ -1,3 +1,5 @@
+![Arceus's logo](./banner.png)
+
 # Arceus
 
 The best (probably) free Minecraft name sniper.
