@@ -1,14 +1,12 @@
 from arceus_net import ConnectionManager, TLSConnectionManager
-import ssl
 from tcp_latency import measure_latency
 from urllib.parse import urlparse
-import functools
 import statistics
-import traceback
 import pause
 import time
 from datetime import datetime, timedelta
 import requests
+import json
 from bs4 import BeautifulSoup
 import typing
 from abc import ABC, abstractmethod
@@ -140,7 +138,7 @@ class Transferrer(Sniper):
                 f"Authorization: Bearer {account.token}\r\n"
                 f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36\r\n\r\n"
                 f"\r\n"
-                f'{"name": {self.target}, "password": {account.password}}\r\n'
+                f'{json.dumps({"name": self.target, "password": account.password})}\r\n'
             ).encode()
             for account in self.accounts
         ]

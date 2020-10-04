@@ -8,7 +8,7 @@ except IOError:
 
 setup(
     name="arceus",
-    version="2.1.2",
+    version="2.1.3",
     description="Minecraft name sniper.",
     author="Aquild",
     packages=find_packages(),

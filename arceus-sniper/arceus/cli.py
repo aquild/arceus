@@ -102,7 +102,7 @@ def block(target: str, config_file: str, attempts: int, later: int):
         config_file = ask_config_file()
 
     try:
-        config = Config({**json.load(open(config_file)), attempts: attempts})
+        config = Config({**json.load(open(config_file)), "attempts": attempts})
     except json.JSONDecodeError:
         exit("Config file is not valid JSON! Exiting...")
 
@@ -117,6 +117,7 @@ def block(target: str, config_file: str, attempts: int, later: int):
                 log(f'Account "{account.email}" is secured', "magenta")
         except:
             auth_fail = True
+            traceback.print_exc()
             log(f'Failed to authenticate account "{account.email}"', "magenta")
 
     if auth_fail:
