@@ -10,7 +10,7 @@ The best (probably) free Minecraft name sniper.
 
 ## IMPORTANT - LICENSE TERMS
 
-The arceus project is licensed under GNU GPLv3 or later. This means you CANNOT redistribute modifications to the project except under GNU GLPv3. In other words, any modifications you make must also be open source.
+The Arceus project is licensed under GNU GPLv3 or later. This means you CANNOT redistribute modifications to the project except under GNU GLPv3. In other words, any modifications you make must also be open source.
 
 ## Features
 
@@ -41,7 +41,7 @@ First, you'll need to create a `config.json`:
       "password": <ACCOUNT_PASSWD>
     }
     ...
-  ]
+  ],
   "offset": <REQUEST_OFFSET>,
   "attempts": <REQUEST_ATTEMPTS>
 }
