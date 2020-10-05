@@ -84,7 +84,7 @@ class Sniper(ABC):
             self.get_drop()
         log(f"Waiting for name drop...", "yellow")
 
-        pause.until(self.drop_time - timedelta(seconds=10))
+        pause.until(self.drop_time - timedelta(seconds=30))
         if verbose:
             log("Authenticating...", "yellow")
         for account in self.accounts:
@@ -105,7 +105,11 @@ class Sniper(ABC):
         pause.until((self.drop_time + self.offset) - (self.rtt / 2))
         if verbose:
             log(f"Spamming...", "yellow")
+        start = datetime.now()
         conns.send(self.payloads)
+        send_time = datetime.now() - start
+        if verbose:
+            log(f"Took {send_time.microseconds / 1000}ms ({attempts / send_time.microseconds * 1_000_000} requests per second).", "magenta")
 
 
 class Blocker(Sniper):
@@ -136,7 +140,7 @@ class Transferrer(Sniper):
                 f"Content-Length: 0\r\n"
                 f"Accept: */*\r\n"
                 f"Authorization: Bearer {account.token}\r\n"
-                f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36\r\n\r\n"
+                f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36\r\n"
                 f"\r\n"
                 f'{json.dumps({"name": self.target, "password": account.password})}\r\n'
             ).encode()
