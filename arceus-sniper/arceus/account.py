@@ -33,7 +33,7 @@ class Account:
         else:
             json = res.json()
             self.token = json["accessToken"]
-            self.uuid: str = None
+            self.uuid: str = ""
             try:
                 self.uuid = json["selectedProfile"]["id"]
             except KeyError:

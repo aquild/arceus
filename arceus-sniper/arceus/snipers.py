@@ -37,7 +37,7 @@ class Sniper(ABC):
         self.api_base = api_base
 
         parsed = urlparse(self.api_base)
-        self.api_host = parsed.hostname
+        self.api_host = parsed.hostname or "api.mojang.com"
         self.api_port = parsed.port or {"https": 443, "http": 80}[parsed.scheme]
         self.api_ssl = parsed.scheme == "https"
 
