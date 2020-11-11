@@ -4,7 +4,6 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pylint = "*"
 black = "*"
 maturin = "*"
 
@@ -21,7 +20,7 @@ requests-random-user-agent = "*"
 tcp-latency = "*"
 
 [requires]
-python_version = "3.8.5"
+python_version = "3.8"
 
 [pipenv]
 allow_prereleases = true

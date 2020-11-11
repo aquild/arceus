@@ -45,7 +45,7 @@ def ask_target() -> str:
         {
             "type": "input",
             "name": "target",
-            "message": "Enter the username you want to block:",
+            "message": "Enter the username you want to snipe:",
         }
     )["target"]
 

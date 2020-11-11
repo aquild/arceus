@@ -74,7 +74,10 @@ class Benchmarker(Sniper):
         conns.send(self.payloads)
         send_time = datetime.now() - start
         if verbose:
-            log(f"Took {send_time.microseconds / 1000}ms ({attempts / send_time.microseconds * 1_000_000} requests per second).", "magenta")
+            log(
+                f"Took {send_time.microseconds / 1000}ms ({attempts / send_time.microseconds * 1_000_000} requests per second).",
+                "magenta",
+            )
 
     @property
     def result(self):

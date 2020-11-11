@@ -109,21 +109,30 @@ class Sniper(ABC):
         conns.send(self.payloads)
         send_time = datetime.now() - start
         if verbose:
-            log(f"Took {send_time.microseconds / 1000}ms ({attempts / send_time.microseconds * 1_000_000} requests per second).", "magenta")
+            log(
+                f"Took {send_time.microseconds / 1000}ms ({attempts / send_time.microseconds * 1_000_000} requests per second).",
+                "magenta",
+            )
+
+
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36"
 
 
 class Blocker(Sniper):
     @property
     def payloads(self):
         return [
-            (
-                f"PUT /user/profile/agent/minecraft/name/{self.target} HTTP/1.1\r\n"
-                f"Host: api.mojang.com\r\n"
-                f"Connection: keep-alive\r\n"
-                f"Content-Length: 0\r\n"
-                f"Accept: */*\r\n"
-                f"Authorization: Bearer {account.token}\r\n"
-                f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36\r\n\r\n"
+            "\r\n".join(
+                (
+                    f"PUT /user/profile/agent/minecraft/name/{self.target} HTTP/1.1",
+                    f"Host: api.mojang.com",
+                    f"Connection: keep-alive",
+                    f"Content-Length: 0",
+                    f"Accept: */*",
+                    f"Authorization: Bearer {account.token}",
+                    f"User-Agent: {USER_AGENT}",
+                    "",  # Body
+                )
             ).encode()
             for account in self.accounts
         ]
@@ -133,16 +142,18 @@ class Transferrer(Sniper):
     @property
     def payloads(self):
         return [
-            (
-                f"PUT /user/profile/{account.uuid}/name HTTP/1.1\r\n"
-                f"Host: api.mojang.com\r\n"
-                f"Connection: keep-alive\r\n"
-                f"Content-Length: 0\r\n"
-                f"Accept: */*\r\n"
-                f"Authorization: Bearer {account.token}\r\n"
-                f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36\r\n"
-                f"\r\n"
-                f'{json.dumps({"name": self.target, "password": account.password})}\r\n'
+            "\r\n".join(
+                (
+                    f"POST /user/profile/{account.uuid}/name HTTP/1.1",
+                    f"Host: api.mojang.com",
+                    f"Connection: keep-alive",
+                    f"Content-Type: application/json",
+                    f"Accept: */*",
+                    f"Authorization: Bearer {account.token}",
+                    f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
+                    f"",
+                    f'{json.dumps({"name": self.target, "password": account.password})}',
+                )
             ).encode()
             for account in self.accounts
         ]
