@@ -1,5 +1,6 @@
 import requests
 import requests_random_user_agent
+import pprint
 
 
 class InvalidAccountError(Exception):
@@ -27,9 +28,9 @@ class Account:
         )
 
         if res.status_code == 403:
-            raise InvalidAccountError
+            raise InvalidAccountError(res.json())
         elif res.status_code == 419:
-            raise RatelimitedError
+            raise RatelimitedError(res.json())
         else:
             json = res.json()
             self.token = json["accessToken"]

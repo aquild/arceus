@@ -29,12 +29,17 @@ class Benchmarker(Sniper):
     @property
     def payloads(self):
         return [
-            (
-                f"GET /arceus-v{__version__}/snipe HTTP/1.1\r\n"
-                f"Host: {self.api_host}\r\n"
-                f"Content-Length: 0\r\n"
-                f"Accept: */*\r\n"
-                f"User-Agent: Arceus v1\r\n\r\n"
+            "\r\n".join(
+                (
+                    f"GET /arceus-v{__version__}/snipe HTTP/1.1",
+                    f"Host: {self.api_host}",
+                    "Content-Length: 0",
+                    "Accept: */*",
+                    "User-Agent: Arceus v1",
+                    # Body
+                    "",
+                    ""
+                )
             ).encode()
         ]
 

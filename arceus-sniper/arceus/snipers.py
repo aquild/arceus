@@ -125,13 +125,15 @@ class Blocker(Sniper):
             "\r\n".join(
                 (
                     f"PUT /user/profile/agent/minecraft/name/{self.target} HTTP/1.1",
-                    f"Host: api.mojang.com",
-                    f"Connection: keep-alive",
-                    f"Content-Length: 0",
-                    f"Accept: */*",
+                    "Host: api.mojang.com",
+                    "Connection: keep-alive",
+                    "Content-Length: 0",
+                    "Accept: */*",
                     f"Authorization: Bearer {account.token}",
                     f"User-Agent: {USER_AGENT}",
-                    "",  # Body
+                    # Body
+                    "",
+                    ""
                 )
             ).encode()
             for account in self.accounts
@@ -145,14 +147,15 @@ class Transferrer(Sniper):
             "\r\n".join(
                 (
                     f"POST /user/profile/{account.uuid}/name HTTP/1.1",
-                    f"Host: api.mojang.com",
-                    f"Connection: keep-alive",
-                    f"Content-Type: application/json",
-                    f"Accept: */*",
+                    "Host: api.mojang.com",
+                    "Connection: keep-alive",
+                    "Content-Type: application/json",
+                    "Accept: */*",
                     f"Authorization: Bearer {account.token}",
-                    f"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
-                    f"",
+                    f"User-Agent: {USER_AGENT}",
+                    "",
                     f'{json.dumps({"name": self.target, "password": account.password})}',
+                    ""
                 )
             ).encode()
             for account in self.accounts
