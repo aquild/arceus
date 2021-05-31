@@ -81,8 +81,8 @@ impl TLSConnectionManager {
         let addr_string = format!("{}:{}", host, port);
         TLSConnectionManager {
             address: addr_string.to_socket_addrs().unwrap().next().unwrap(),
-            domain: domain,
             streams: Vec::new(),
+            domain,
         }
     }
 
@@ -91,12 +91,13 @@ impl TLSConnectionManager {
         async fn create_stream(
             connector: &TlsConnector,
             address: SocketAddr,
-            domain: &String,
+            domain: &str,
         ) -> Option<TlsStream<TcpStream>> {
             let stream = TcpStream::connect(address).await.unwrap();
             connector.connect(domain, stream).await.ok()
         }
 
+        self.streams.reserve(connections as usize);
         task::block_on(async {
             self.streams.extend(
                 future::join_all(
