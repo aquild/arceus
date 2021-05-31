@@ -8,6 +8,9 @@
 
 The best (probably) free Minecraft name sniper.
 
+## Arceus is no longer maintained
+Arceus no longer works as a standalone sniper; however this repository still exists as its `arceus-net` library can be useful on its own.
+
 ## IMPORTANT - LICENSE TERMS
 
 The Arceus project is licensed under GNU GPLv3 or later. This means you CANNOT redistribute modifications to the project except under GNU GLPv3. In other words, any modifications you make must also be open source.
