@@ -2,13 +2,14 @@
 extern crate pyo3;
 
 use async_std::net::TcpStream;
-use async_std::task;
+use async_std::{io, task};
 use async_tls::client::TlsStream;
 use async_tls::TlsConnector;
 use futures::future;
-use futures::io::AsyncWriteExt;
+use futures::io::{AsyncReadExt, AsyncWriteExt};
 use pyo3::prelude::*;
 use std::net::{SocketAddr, ToSocketAddrs};
+use std::time::Duration;
 
 #[pyclass]
 struct ConnectionManager {
@@ -54,6 +55,15 @@ impl ConnectionManager {
         ));
 
         Ok(())
+    }
+
+    #[args(timeout = "5")]
+    fn recieve(&mut self, timeout: u64) -> PyResult<Vec<Vec<u8>>> {
+        let mut bufs: Vec<Vec<u8>> = self.streams.iter().map(|_| Vec::new()).collect();
+        task::block_on(future::join_all(self.streams.iter_mut().zip(bufs.iter_mut()).map(|(s, b)| {
+            io::timeout(Duration::from_secs(timeout), s.read_to_end(b))
+        })));
+        Ok(bufs)
     }
 }
 
@@ -110,6 +120,15 @@ impl TLSConnectionManager {
         ));
 
         Ok(())
+    }
+
+    #[args(timeout = "5")]
+    fn recieve(&mut self, timeout: u64) -> PyResult<Vec<Vec<u8>>> {
+        let mut bufs: Vec<Vec<u8>> = self.streams.iter().map(|_| Vec::new()).collect();
+        task::block_on(future::join_all(self.streams.iter_mut().zip(bufs.iter_mut()).map(|(s, b)| {
+            io::timeout(Duration::from_secs(timeout), s.read_to_end(b))
+        })));
+        Ok(bufs)
     }
 }
 
